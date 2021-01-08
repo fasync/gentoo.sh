@@ -1,0 +1,34 @@
+#!/bin/sh
+
+echo
+echo
+echo "----------------------------------------------"
+echo "--------------- System Upgrade ---------------"
+echo "----------------------------------------------"
+echo
+echo
+
+keypress() {
+    echo -n "Press any key to continue..."
+    read -n1 -e -r 2> /dev/null
+    echo
+}
+
+yes() {
+    echo -n "$1 (Y/n) "
+    read key -n1 -e -r 2> /dev/null
+
+    if [ "$key" == "y"  ] || [ -z "$key" ]; then
+	return 0
+    elif [ "$key" == "n" ]; then
+	return 1
+    fi
+}
+
+yes "Sync?" && eix-sync && eix-update
+emerge -auvDN --with-bdeps=y @world && keypress
+yes "Config?" && etc-update
+emerge -avc && keypress
+emerge @preserved-rebuild && keypress
+revdep-rebuild -i && keypress
+eclean-dist --deep
